@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import IdeaCard from "@/components/IdeaCard";
+import Notice from "@/components/Notice";
 import { Sparkles, Loader2 } from "lucide-react";
+
+function IdeaCardSkeleton() {
+  return (
+    <div className="bg-card border-l-[3px] border-l-line border border-line rounded-card p-4 flex flex-col gap-2 animate-pulse">
+      <div className="h-4 bg-paper rounded w-3/4" />
+      <div className="h-3 bg-paper rounded w-full" />
+      <div className="h-3 bg-paper rounded w-5/6" />
+      <div className="h-5 bg-paper rounded w-16 mt-1" />
+    </div>
+  );
+}
 
 export default function IdeasPage() {
   const [topic, setTopic] = useState("");
@@ -12,6 +24,7 @@ export default function IdeasPage() {
   const [savedIdeas, setSavedIdeas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   async function loadIdeas() {
     const res = await fetch("/api/ideas");
@@ -53,6 +66,7 @@ export default function IdeasPage() {
     if (res.ok) {
       setGenerated((prev) => prev.filter((i) => i.title !== idea.title));
       loadIdeas();
+      setNotice(`บันทึกไอเดีย "${idea.title}" แล้ว`);
     }
   }
 
@@ -76,7 +90,7 @@ export default function IdeasPage() {
         status: "idea",
       }),
     });
-    alert(`เพิ่ม "${idea.title}" ลงปฏิทินแล้ว — ไปที่หน้าปฏิทินเพื่อตั้งวันที่`);
+    setNotice(`เพิ่ม "${idea.title}" ลงปฏิทินแล้ว — ไปที่หน้าปฏิทินเพื่อตั้งวันที่`);
   }
 
   return (
@@ -122,7 +136,18 @@ export default function IdeasPage() {
           {error && <p className="text-sm text-red-500">{error}</p>}
         </form>
 
-        {generated.length > 0 && (
+        {loading && (
+          <div className="mb-10">
+            <h2 className="font-display text-xl text-ink mb-3">กำลังคิดไอเดียให้คุณ...</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {[0, 1, 2, 3].map((i) => (
+                <IdeaCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!loading && generated.length > 0 && (
           <div className="mb-10">
             <h2 className="font-display text-xl text-ink mb-3">ไอเดียใหม่จาก AI</h2>
             <div className="grid sm:grid-cols-2 gap-3">
@@ -159,6 +184,8 @@ export default function IdeasPage() {
           </div>
         )}
       </main>
+
+      <Notice message={notice} onClose={() => setNotice("")} />
     </div>
   );
 }

@@ -13,6 +13,9 @@ export async function POST(req) {
     const ideas = await generateYoutubeIdeas({ topic, channelDescription, count: 5 });
     return NextResponse.json({ ideas });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const friendly = /50[0-9]|429|UNAVAILABLE/i.test(err.message)
+      ? "AI กำลังมีคนใช้งานเยอะตอนนี้ ลองกด \"สร้างไอเดีย\" อีกครั้งใน 1-2 นาทีครับ"
+      : err.message;
+    return NextResponse.json({ error: friendly }, { status: 500 });
   }
 }
