@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { LayoutGrid, Lightbulb, CalendarDays, LogOut, Film } from "lucide-react";
+import { LayoutGrid, Lightbulb, CalendarDays, LogOut, Film, TrendingUp } from "lucide-react";
 
 const links = [
   { href: "/", label: "ภาพรวม", icon: LayoutGrid },
   { href: "/ideas", label: "ไอเดีย", icon: Lightbulb },
   { href: "/calendar", label: "ปฏิทิน", icon: CalendarDays },
+  { href: "/results", label: "ผลลัพธ์", icon: TrendingUp },
 ];
 
 export default function Navbar() {

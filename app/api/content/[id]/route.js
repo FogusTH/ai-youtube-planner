@@ -8,7 +8,20 @@ export async function PATCH(req, { params }) {
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const updates = await req.json();
-  const allowed = ["title", "description", "status", "scheduled_date"];
+  const allowed = [
+    "title",
+    "description",
+    "status",
+    "scheduled_date",
+    "alt_titles",
+    "thumbnail_idea",
+    "hook_notes",
+    "cta_notes",
+    "series",
+    "views",
+    "ctr",
+    "retention_notes",
+  ];
   const payload = { updated_at: new Date().toISOString() };
   for (const key of allowed) {
     if (key in updates) payload[key] = updates[key];

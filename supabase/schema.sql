@@ -30,6 +30,14 @@ create table if not exists content_items (
   description text,
   status text not null default 'idea' check (status in ('idea','script','shooting','editing','posted')),
   scheduled_date date,
+  alt_titles text,
+  thumbnail_idea text,
+  hook_notes text,
+  cta_notes text,
+  series text,
+  views integer,
+  ctr numeric,
+  retention_notes text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
