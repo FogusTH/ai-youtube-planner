@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import IdeaCard from "@/components/IdeaCard";
 import Notice from "@/components/Notice";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { Sparkles, Loader2 } from "lucide-react";
 
 function IdeaCardSkeleton() {
@@ -25,6 +26,7 @@ export default function IdeasPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null); // idea pending delete confirmation
 
   async function loadIdeas() {
     const res = await fetch("/api/ideas");
@@ -77,6 +79,13 @@ export default function IdeasPage() {
       body: JSON.stringify({ id }),
     });
     loadIdeas();
+    setNotice("ลบไอเดียแล้ว");
+  }
+
+  function confirmDeleteIdea() {
+    if (!deleteTarget) return;
+    deleteIdea(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   async function addToCalendar(idea) {
@@ -178,7 +187,7 @@ export default function IdeasPage() {
                 key={idea.id}
                 idea={idea}
                 onAddToCalendar={addToCalendar}
-                onDelete={deleteIdea}
+                onDelete={() => setDeleteTarget(idea)}
               />
             ))}
           </div>
@@ -186,6 +195,13 @@ export default function IdeasPage() {
       </main>
 
       <Notice message={notice} onClose={() => setNotice("")} />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="ลบไอเดียนี้?"
+        message={deleteTarget ? `"${deleteTarget.title}" จะถูกลบออกจากรายการถาวร` : ""}
+        onConfirm={confirmDeleteIdea}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

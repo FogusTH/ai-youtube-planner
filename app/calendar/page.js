@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import ContentCard from "@/components/ContentCard";
 import MonthCalendar from "@/components/MonthCalendar";
 import ContentDetailModal from "@/components/ContentDetailModal";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Notice from "@/components/Notice";
 import { STATUS_ORDER, STATUS_LABELS } from "@/components/StatusBadge";
 import { Plus, LayoutGrid, CalendarDays } from "lucide-react";
 
@@ -15,6 +17,8 @@ export default function CalendarPage() {
   const [view, setView] = useState("board"); // 'board' | 'month'
   const [seriesFilter, setSeriesFilter] = useState("all");
   const [detailItem, setDetailItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [notice, setNotice] = useState("");
 
   async function load() {
     const res = await fetch("/api/content");
@@ -51,6 +55,13 @@ export default function CalendarPage() {
   async function deleteItem(id) {
     setItems((prev) => prev.filter((i) => i.id !== id));
     await fetch(`/api/content/${id}`, { method: "DELETE" });
+    setNotice("ลบงานนี้แล้ว");
+  }
+
+  function confirmDeleteItem() {
+    if (!deleteTarget) return;
+    deleteItem(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   const seriesList = useMemo(() => {
@@ -150,7 +161,7 @@ export default function CalendarPage() {
                         key={item.id}
                         item={item}
                         onUpdate={updateItem}
-                        onDelete={deleteItem}
+                        onDelete={() => setDeleteTarget(item)}
                         onOpenDetail={setDetailItem}
                       />
                     ))}
@@ -176,6 +187,15 @@ export default function CalendarPage() {
           onUpdate={updateItem}
         />
       )}
+
+      <Notice message={notice} onClose={() => setNotice("")} />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="ลบงานนี้?"
+        message={deleteTarget ? `"${deleteTarget.title}" จะถูกลบออกจากปฏิทินถาวร` : ""}
+        onConfirm={confirmDeleteItem}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
