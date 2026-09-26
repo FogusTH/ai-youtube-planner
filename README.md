@@ -2,9 +2,36 @@
 
 เว็บแอปวางแผนคอนเทนต์ YouTube — คิดไอเดียด้วย AI, จัดตารางลงปฏิทิน, ติดตามสถานะงานตั้งแต่ไอเดียจนถึงโพสต์จริง (ไอเดีย → สคริปต์ → ถ่ายทำ → ตัดต่อ → โพสต์แล้ว)
 
-Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Email/Password) + Supabase (Postgres) + Google Gemini API · deploy บน Vercel ฟรี
+Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Google OAuth + Email/Password) + Supabase (Postgres) + Google Gemini API · deploy บน Vercel ฟรี
 
 ทุกขั้นตอนด้านล่างทำผ่านเบราว์เซอร์ล้วนๆ **ไม่ต้องติดตั้งโปรแกรมอะไรในเครื่องเลย**
+
+📄 ดูรายละเอียดข้อกำหนดของระบบแบบเต็มได้ที่ [REQUIREMENTS.md](./REQUIREMENTS.md)
+
+---
+
+## เทคโนโลยีและภาษาที่ใช้
+
+**ภาษาโปรแกรมมิ่ง**
+- JavaScript (React / Next.js — ฝั่งหน้าเว็บและ API)
+- SQL (PostgreSQL — สร้างและจัดการฐานข้อมูล)
+- HTML / CSS (ผ่าน JSX และ Tailwind CSS)
+
+**Framework และไลบรารีหลัก**
+| ส่วน | เทคโนโลยี | หน้าที่ |
+|---|---|---|
+| Frontend + Backend | [Next.js 14](https://nextjs.org) (App Router) | เรนเดอร์หน้าเว็บ (React) และเป็น API server ในตัวเดียวกัน |
+| UI Styling | [Tailwind CSS](https://tailwindcss.com) | จัดสไตล์หน้าตาเว็บทั้งหมด |
+| ไอคอน | [lucide-react](https://lucide.dev) | ไอคอนต่างๆ ในแอป |
+| ระบบยืนยันตัวตน | [NextAuth.js](https://next-auth.js.org) | จัดการ Login ทั้ง 3 ช่องทาง (Email/Password, GitHub OAuth, Google OAuth) |
+| เข้ารหัสรหัสผ่าน | [bcryptjs](https://www.npmjs.com/package/bcryptjs) | แฮชรหัสผ่านก่อนเก็บลงฐานข้อมูล |
+| ฐานข้อมูล | [Supabase](https://supabase.com) (PostgreSQL) | เก็บข้อมูลผู้ใช้ ไอเดีย และคอนเทนต์ทั้งหมด |
+| AI สร้างไอเดีย | [Google Gemini API](https://ai.google.dev) (โมเดล gemini-3.6-flash) | คิดไอเดียคอนเทนต์ YouTube ให้อัตโนมัติ |
+
+**โครงสร้างพื้นฐาน (Infrastructure)**
+- [GitHub](https://github.com) — เก็บซอร์สโค้ด (Version Control)
+- [Vercel](https://vercel.com) — Hosting และ Deploy อัตโนมัติจาก GitHub
+- ทั้งหมดใช้งานได้ฟรีบน Free / Hobby Tier ของแต่ละผู้ให้บริการ
 
 ---
 
