@@ -18,10 +18,13 @@ export default function Navbar() {
 
   return (
     <aside className="w-full md:w-60 md:min-h-screen bg-navy text-white flex md:flex-col">
-      <div className="px-5 py-5 flex items-center gap-2 border-b border-white/10">
+      <Link
+        href="/"
+        className="px-5 py-5 flex items-center gap-2 border-b border-white/10 hover:bg-white/5 transition-colors focus-ring"
+      >
         <Film size={20} className="text-amber" />
         <span className="font-display text-lg tracking-tight">YouTube Planner</span>
-      </div>
+      </Link>
 
       <nav className="flex md:flex-col flex-1 px-2 py-3 gap-1">
         {links.map(({ href, label, icon: Icon }) => {
