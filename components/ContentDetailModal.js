@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, RefreshCw } from "lucide-react";
 
 export default function ContentDetailModal({ item, onClose, onUpdate }) {
   const [form, setForm] = useState({
@@ -10,14 +10,43 @@ export default function ContentDetailModal({ item, onClose, onUpdate }) {
     hook_notes: item.hook_notes || "",
     cta_notes: item.cta_notes || "",
     series: item.series || "",
+    youtube_video_id: item.youtube_video_id || "",
     views: item.views ?? "",
     ctr: item.ctr ?? "",
     retention_notes: item.retention_notes || "",
   });
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState("");
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleSync() {
+    if (!form.youtube_video_id) {
+      setSyncMsg("กรุณาใส่ลิงก์หรือรหัสวิดีโอ YouTube ก่อน");
+      return;
+    }
+    setSyncing(true);
+    setSyncMsg("");
+
+    const res = await fetch("/api/youtube/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contentItemId: item.id, videoId: form.youtube_video_id }),
+    });
+    const data = await res.json();
+    setSyncing(false);
+
+    if (!res.ok) {
+      setSyncMsg(data.error || "ดึงข้อมูลไม่สำเร็จ");
+      return;
+    }
+
+    setForm((f) => ({ ...f, views: data.stats.views, youtube_video_id: data.stats.videoId }));
+    await onUpdate(item.id, { views: data.stats.views, youtube_video_id: data.stats.videoId });
+    setSyncMsg(`อัปเดตแล้ว: ${data.stats.views.toLocaleString()} วิว — "${data.stats.title}"`);
   }
 
   async function handleSave() {
@@ -28,6 +57,7 @@ export default function ContentDetailModal({ item, onClose, onUpdate }) {
       hook_notes: form.hook_notes,
       cta_notes: form.cta_notes,
       series: form.series,
+      youtube_video_id: form.youtube_video_id,
       views: form.views === "" ? null : Number(form.views),
       ctr: form.ctr === "" ? null : Number(form.ctr),
       retention_notes: form.retention_notes,
@@ -113,6 +143,35 @@ export default function ContentDetailModal({ item, onClose, onUpdate }) {
 
           <section>
             <h4 className="text-xs font-medium text-inkmuted uppercase tracking-wide mb-2">
+              เชื่อมต่อ YouTube
+            </h4>
+            <div className="flex flex-col gap-2.5">
+              <div>
+                <label className="text-xs text-ink block mb-1">ลิงก์หรือรหัสวิดีโอ YouTube</label>
+                <div className="flex gap-2">
+                  <input
+                    value={form.youtube_video_id}
+                    onChange={(e) => set("youtube_video_id", e.target.value)}
+                    placeholder="เช่น https://youtu.be/xxxxxxxxxxx"
+                    className="flex-1 border border-line rounded-md px-2.5 py-2 text-sm focus-ring bg-white"
+                  />
+                  <button
+                    onClick={handleSync}
+                    disabled={syncing}
+                    type="button"
+                    className="shrink-0 flex items-center gap-1.5 bg-navy text-white text-xs font-medium px-3 py-2 rounded-md hover:bg-navydeep transition-colors disabled:opacity-60 focus-ring"
+                  >
+                    <RefreshCw size={13} className={syncing ? "animate-spin" : ""} />
+                    {syncing ? "กำลังดึง..." : "ดึงยอดวิวล่าสุด"}
+                  </button>
+                </div>
+                {syncMsg && <p className="text-xs text-inkmuted mt-1.5">{syncMsg}</p>}
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h4 className="text-xs font-medium text-inkmuted uppercase tracking-wide mb-2">
               ผลลัพธ์หลังโพสต์
             </h4>
             <div className="grid grid-cols-2 gap-2.5">
@@ -125,6 +184,9 @@ export default function ContentDetailModal({ item, onClose, onUpdate }) {
                   placeholder="0"
                   className="w-full border border-line rounded-md px-2.5 py-2 text-sm focus-ring bg-white"
                 />
+                <p className="text-[11px] text-inkmuted mt-1">
+                  ดึงอัตโนมัติได้จากช่อง &quot;เชื่อมต่อ YouTube&quot; ด้านบน หรือกรอกเองก็ได้
+                </p>
               </div>
               <div>
                 <label className="text-xs text-ink block mb-1">CTR (%)</label>
@@ -136,6 +198,9 @@ export default function ContentDetailModal({ item, onClose, onUpdate }) {
                   placeholder="0.0"
                   className="w-full border border-line rounded-md px-2.5 py-2 text-sm focus-ring bg-white"
                 />
+                <p className="text-[11px] text-inkmuted mt-1">
+                  YouTube ไม่เปิดให้ดึงอัตโนมัติ ต้องกรอกเองจาก YouTube Studio
+                </p>
               </div>
               <div className="col-span-2">
                 <label className="text-xs text-ink block mb-1">

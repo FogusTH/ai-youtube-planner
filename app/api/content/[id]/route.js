@@ -21,6 +21,7 @@ export async function PATCH(req, { params }) {
     "views",
     "ctr",
     "retention_notes",
+    "youtube_video_id",
   ];
   const payload = { updated_at: new Date().toISOString() };
   for (const key of allowed) {
