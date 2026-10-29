@@ -1,9 +1,18 @@
 "use client";
 
-import { Trash2, ListPlus } from "lucide-react";
+import { Trash2, ListPlus, Film, Zap, Radio } from "lucide-react";
 import { STATUS_ORDER, STATUS_LABELS } from "./StatusBadge";
 
+const TYPE_META = {
+  video: { label: "คลิปยาว", icon: Film },
+  shorts: { label: "Shorts", icon: Zap },
+  stream: { label: "สตรีม", icon: Radio },
+};
+
 export default function ContentCard({ item, onUpdate, onDelete, onOpenDetail }) {
+  const type = TYPE_META[item.content_type] || TYPE_META.video;
+  const TypeIcon = type.icon;
+
   return (
     <div className="bg-card border border-line rounded-card p-3.5 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">
@@ -17,11 +26,24 @@ export default function ContentCard({ item, onUpdate, onDelete, onOpenDetail }) 
         </button>
       </div>
 
-      {item.series && (
-        <span className="self-start text-[11px] text-navy bg-paper px-2 py-0.5 rounded">
-          {item.series}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span
+          title={type.label}
+          className="text-[11px] flex items-center gap-1 text-inkmuted bg-paper px-2 py-0.5 rounded"
+        >
+          <TypeIcon size={11} /> {type.label}
         </span>
-      )}
+        {item.series && (
+          <span className="text-[11px] text-navy bg-paper px-2 py-0.5 rounded">
+            {item.series}
+          </span>
+        )}
+        {item.content_type === "stream" && item.stream_time && (
+          <span className="text-[11px] text-navy bg-paper px-2 py-0.5 rounded">
+            ไลฟ์ {item.stream_time}
+          </span>
+        )}
+      </div>
 
       {item.description && (
         <p className="text-xs text-inkmuted leading-relaxed line-clamp-2">{item.description}</p>

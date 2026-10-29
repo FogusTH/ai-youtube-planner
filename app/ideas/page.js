@@ -5,7 +5,13 @@ import Navbar from "@/components/Navbar";
 import IdeaCard from "@/components/IdeaCard";
 import Notice from "@/components/Notice";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Film, Zap, Radio } from "lucide-react";
+
+const CONTENT_TYPES = [
+  { value: "video", label: "คลิปยาว", icon: Film },
+  { value: "shorts", label: "Shorts", icon: Zap },
+  { value: "stream", label: "หัวข้อสตรีม", icon: Radio },
+];
 
 function IdeaCardSkeleton() {
   return (
@@ -21,6 +27,7 @@ function IdeaCardSkeleton() {
 export default function IdeasPage() {
   const [topic, setTopic] = useState("");
   const [channelDescription, setChannelDescription] = useState("");
+  const [contentType, setContentType] = useState("video");
   const [generated, setGenerated] = useState([]);
   const [savedIdeas, setSavedIdeas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +54,7 @@ export default function IdeasPage() {
     const res = await fetch("/api/ideas/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic, channelDescription }),
+      body: JSON.stringify({ topic, channelDescription, contentType }),
     });
     const data = await res.json();
     setLoading(false);
@@ -56,7 +63,7 @@ export default function IdeasPage() {
       setError(data.error || "สร้างไอเดียไม่สำเร็จ ลองใหม่อีกครั้ง");
       return;
     }
-    setGenerated(data.ideas || []);
+    setGenerated((data.ideas || []).map((idea) => ({ ...idea, content_type: contentType })));
   }
 
   async function saveIdea(idea) {
@@ -97,6 +104,7 @@ export default function IdeasPage() {
         description: idea.description,
         idea_id: idea.id,
         status: "idea",
+        content_type: idea.content_type || "video",
       }),
     });
     setNotice(`เพิ่ม "${idea.title}" ลงปฏิทินแล้ว — ไปที่หน้าปฏิทินเพื่อตั้งวันที่`);
@@ -113,6 +121,25 @@ export default function IdeasPage() {
           onSubmit={handleGenerate}
           className="bg-card border border-line rounded-card p-5 flex flex-col gap-3 mb-8"
         >
+          <div>
+            <label className="text-sm text-ink font-medium block mb-1.5">ประเภทคอนเทนต์</label>
+            <div className="flex border border-line rounded-md overflow-hidden w-fit">
+              {CONTENT_TYPES.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setContentType(value)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm focus-ring ${
+                    contentType === value
+                      ? "bg-navy text-white"
+                      : "bg-white text-inkmuted hover:text-ink"
+                  }`}
+                >
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div>
             <label className="text-sm text-ink font-medium block mb-1">หัวข้อที่อยากได้ไอเดีย</label>
             <input

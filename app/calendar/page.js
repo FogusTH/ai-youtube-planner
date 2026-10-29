@@ -8,14 +8,22 @@ import ContentDetailModal from "@/components/ContentDetailModal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Notice from "@/components/Notice";
 import { STATUS_ORDER, STATUS_LABELS } from "@/components/StatusBadge";
-import { Plus, LayoutGrid, CalendarDays } from "lucide-react";
+import { Plus, LayoutGrid, CalendarDays, Film, Zap, Radio } from "lucide-react";
+
+const CONTENT_TYPES = [
+  { value: "video", label: "คลิปยาว", icon: Film },
+  { value: "shorts", label: "Shorts", icon: Zap },
+  { value: "stream", label: "สตรีม", icon: Radio },
+];
 
 export default function CalendarPage() {
   const [items, setItems] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
+  const [newContentType, setNewContentType] = useState("video");
   const [view, setView] = useState("board"); // 'board' | 'month'
   const [seriesFilter, setSeriesFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [detailItem, setDetailItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [notice, setNotice] = useState("");
@@ -36,9 +44,10 @@ export default function CalendarPage() {
     await fetch("/api/content", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, status: "idea" }),
+      body: JSON.stringify({ title, status: "idea", content_type: newContentType }),
     });
     setTitle("");
+    setNewContentType("video");
     setShowForm(false);
     load();
   }
@@ -70,9 +79,12 @@ export default function CalendarPage() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (seriesFilter === "all") return items;
-    return items.filter((i) => i.series === seriesFilter);
-  }, [items, seriesFilter]);
+    return items.filter((i) => {
+      const matchSeries = seriesFilter === "all" || i.series === seriesFilter;
+      const matchType = typeFilter === "all" || (i.content_type || "video") === typeFilter;
+      return matchSeries && matchType;
+    });
+  }, [items, seriesFilter, typeFilter]);
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -109,39 +121,75 @@ export default function CalendarPage() {
         </div>
         <p className="text-inkmuted mb-4">ลากสถานะงานผ่านแต่ละขั้นตอนตั้งแต่ไอเดียจนถึงโพสต์จริง</p>
 
-        {seriesList.length > 0 && (
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs text-inkmuted">ซีรีส์:</span>
+        <div className="flex items-center gap-4 mb-6 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-inkmuted">ประเภท:</span>
             <select
-              value={seriesFilter}
-              onChange={(e) => setSeriesFilter(e.target.value)}
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
               className="text-xs border border-line rounded px-2 py-1.5 bg-white text-ink focus-ring"
             >
               <option value="all">ทั้งหมด</option>
-              {seriesList.map((s) => (
-                <option key={s} value={s}>
-                  {s}
+              {CONTENT_TYPES.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
           </div>
-        )}
+
+          {seriesList.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-inkmuted">ซีรีส์:</span>
+              <select
+                value={seriesFilter}
+                onChange={(e) => setSeriesFilter(e.target.value)}
+                className="text-xs border border-line rounded px-2 py-1.5 bg-white text-ink focus-ring"
+              >
+                <option value="all">ทั้งหมด</option>
+                {seriesList.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
         {showForm && (
-          <form onSubmit={addItem} className="flex gap-2 mb-6 max-w-md">
-            <input
-              autoFocus
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="ชื่อคอนเทนต์"
-              className="flex-1 border border-line rounded-md px-3 py-2 text-sm focus-ring bg-white"
-            />
-            <button
-              type="submit"
-              className="bg-amber text-navydeep font-medium rounded-md px-4 py-2 text-sm hover:brightness-95 transition focus-ring"
-            >
-              เพิ่ม
-            </button>
+          <form onSubmit={addItem} className="flex flex-col gap-2 mb-6 max-w-md">
+            <div className="flex border border-line rounded-md overflow-hidden w-fit">
+              {CONTENT_TYPES.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setNewContentType(value)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-xs focus-ring ${
+                    newContentType === value
+                      ? "bg-navy text-white"
+                      : "bg-white text-inkmuted hover:text-ink"
+                  }`}
+                >
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="ชื่อคอนเทนต์"
+                className="flex-1 border border-line rounded-md px-3 py-2 text-sm focus-ring bg-white"
+              />
+              <button
+                type="submit"
+                className="bg-amber text-navydeep font-medium rounded-md px-4 py-2 text-sm hover:brightness-95 transition focus-ring"
+              >
+                เพิ่ม
+              </button>
+            </div>
           </form>
         )}
 
@@ -185,6 +233,10 @@ export default function CalendarPage() {
           item={detailItem}
           onClose={() => setDetailItem(null)}
           onUpdate={updateItem}
+          onClipCreated={() => {
+            load();
+            setNotice("สร้างคลิปสั้นใหม่จากไฮไลต์แล้ว ไปดูได้ที่คอลัมน์ไอเดีย");
+          }}
         />
       )}
 

@@ -7,10 +7,15 @@ export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { topic, channelDescription } = await req.json();
+  const { topic, channelDescription, contentType } = await req.json();
 
   try {
-    const ideas = await generateYoutubeIdeas({ topic, channelDescription, count: 5 });
+    const ideas = await generateYoutubeIdeas({
+      topic,
+      channelDescription,
+      count: 5,
+      contentType: contentType || "video",
+    });
     return NextResponse.json({ ideas });
   } catch (err) {
     const friendly = /50[0-9]|429|UNAVAILABLE/i.test(err.message)

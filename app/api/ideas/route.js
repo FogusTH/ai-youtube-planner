@@ -22,7 +22,7 @@ export async function POST(req) {
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { title, description, category, source } = body;
+  const { title, description, category, source, content_type } = body;
 
   if (!title) return NextResponse.json({ error: "ต้องมีชื่อไอเดีย" }, { status: 400 });
 
@@ -34,6 +34,7 @@ export async function POST(req) {
       description: description || "",
       category: category || "ทั่วไป",
       source: source || "manual",
+      content_type: content_type || "video",
     })
     .select()
     .single();
