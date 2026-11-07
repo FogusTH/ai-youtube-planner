@@ -1,12 +1,120 @@
 # AI YouTube Planner
 
-เว็บแอปวางแผนคอนเทนต์ YouTube — คิดไอเดียด้วย AI, จัดตารางลงปฏิทิน, ติดตามสถานะงานตั้งแต่ไอเดียจนถึงโพสต์จริง (ไอเดีย → สคริปต์ → ถ่ายทำ → ตัดต่อ → โพสต์แล้ว)
+เว็บแอปวางแผนคอนเทนต์ YouTube — คิดไอเดียด้วย AI, จัดตารางลงปฏิทิน, ติดตามสถานะงานตั้งแต่ไอเดียจนถึงโพสต์จริง (ไอเดีย → สคริปต์ → ถ่ายทำ → ตัดต่อ → โพสต์แล้ว) พร้อมบันทึกผลลัพธ์หลังเผยแพร่
 
-Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Google OAuth + Email/Password) + Supabase (Postgres) + Google Gemini API · deploy บน Vercel ฟรี
-
-ทุกขั้นตอนด้านล่างทำผ่านเบราว์เซอร์ล้วนๆ **ไม่ต้องติดตั้งโปรแกรมอะไรในเครื่องเลย**
+Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Google OAuth + Email/Password) + Supabase (Postgres) + Google Gemini API + YouTube Data API · deploy บน Vercel ฟรี
 
 📄 ดูรายละเอียดข้อกำหนดของระบบแบบเต็มได้ที่ [REQUIREMENTS.md](./REQUIREMENTS.md)
+
+---
+
+## 🌐 วิธีเข้าใช้งานเว็บ (สำหรับอาจารย์/ผู้ตรวจ)
+
+ไม่ต้องติดตั้งอะไรเลย เปิดเว็บที่ deploy แล้วได้ทันทีผ่านเบราว์เซอร์:
+
+**👉 https://ai-youtube-planner3.vercel.app**
+
+### การเข้าสู่ระบบ
+
+เลือกได้ 1 ใน 3 วิธีที่หน้า Login:
+
+1. **Email / Password** (ง่ายที่สุดสำหรับผู้ตรวจ) — กดสลับเป็นโหมด "สมัครสมาชิก" กรอกอีเมลและรหัสผ่านอะไรก็ได้ (อีเมลสมมติได้ เช่น `teacher@example.com`) แล้วกดสมัคร จากนั้นเข้าสู่ระบบด้วยอีเมล/รหัสเดิม
+2. **Continue with GitHub** — ล็อกอินด้วยบัญชี GitHub ของคุณ
+3. **Continue with Google** — ล็อกอินด้วยบัญชี Google ของคุณ
+
+> ข้อมูลของแต่ละบัญชีแยกจากกัน ผู้ใช้อื่นมองไม่เห็นข้อมูลของคุณ
+
+### ลองใช้งานแบบเร็ว (ประมาณ 3 นาที)
+
+1. เมนู **ไอเดีย** → เลือกประเภทคอนเทนต์ (คลิปยาว / Shorts / หัวข้อสตรีม) → พิมพ์หัวข้อ เช่น "รีวิวมือถือราคาประหยัด" → กด **สร้างไอเดีย** → รอ AI คิดให้สักครู่
+2. กด **บันทึกไอเดีย** ที่ชอบ แล้วกด **ลงปฏิทิน** ที่ไอเดียที่บันทึกไว้
+3. เมนู **ปฏิทิน** → เห็นงานในบอร์ดสถานะ (ไอเดีย → สคริปต์ → ถ่ายทำ → ตัดต่อ → โพสต์แล้ว) เปลี่ยนสถานะ/ตั้งวันที่ได้ และสลับเป็นมุมมอง "เดือน" ได้
+4. กดไอคอน **ดูรายละเอียด** บนการ์ดงาน → กรอกชื่อสำรอง ภาพปก Hook CTA หรือกด **ให้ AI ช่วยคิด** เพื่อสร้างชื่อ/คำอธิบายใต้คลิป/แท็ก (SEO)
+5. เมนู **ผลลัพธ์** → ดูยอดวิวของคลิปที่โพสต์แล้ว (วางลิงก์ YouTube แล้วกด "ดึงยอดวิวล่าสุด" ได้)
+
+---
+
+## ฟีเจอร์หลัก
+
+- **เข้าสู่ระบบ** ได้ 3 ช่องทาง: Email/Password, GitHub OAuth, Google OAuth
+- **คิดไอเดียคอนเทนต์ด้วย AI** — ระบุหัวข้อและบริบทช่อง ให้ Gemini สร้างไอเดียให้อัตโนมัติ ปรับมุมคิดตามประเภท (คลิปยาว / Shorts / สตรีม)
+- **แยกประเภทคอนเทนต์** — คลิปยาว, Shorts, สตรีม พร้อมตัวกรองในปฏิทิน
+- **จัดการไอเดีย** — บันทึก ลบ (พร้อมกล่องยืนยันก่อนลบ) และเพิ่มเข้าปฏิทินได้ในคลิกเดียว
+- **วางแผนคอนเทนต์** — บอร์ดสถานะแบบ Kanban และปฏิทินรายเดือน สลับมุมมองได้
+- **รายละเอียดก่อนผลิต** — ชื่อคลิปสำรอง ไอเดียภาพปก Hook เปิดคลิป Call-to-action และจัดกลุ่มเป็นซีรีส์
+- **SEO ช่วยให้คลิปถูกแนะนำมากขึ้น** — AI ช่วยคิดชื่อคลิปหลายเวอร์ชัน คำอธิบายใต้คลิป และแท็ก
+- **สำหรับสตรีมเมอร์** — ตารางสตรีม (เวลา/หัวข้อ), บันทึกไฮไลต์ และสร้างคลิปสั้นจากไฮไลต์ได้ในคลิกเดียว
+- **ติดตามผลลัพธ์** — บันทึกยอดวิว, CTR และสรุปซีรีส์ที่ทำผลงานดีที่สุด
+- **เชื่อมต่อ YouTube** — ดึงยอดวิวล่าสุดของคลิปที่เผยแพร่แล้วอัตโนมัติผ่าน YouTube Data API
+- **ภาพรวม (Dashboard)** — สถิติงานแยกตามสถานะ และกำหนดการที่ใกล้ถึง
+
+---
+
+## 🛠️ วิธีติดตั้งและรันเอง (สำหรับผู้ที่ต้องการรันบนเครื่องตัวเอง)
+
+> ถ้าแค่ต้องการทดลองใช้ ให้ใช้เว็บที่ deploy แล้วด้านบน ไม่ต้องทำส่วนนี้
+
+### สิ่งที่ต้องมี
+
+- [Node.js](https://nodejs.org) เวอร์ชัน 18 ขึ้นไป
+- บัญชีฟรีของ [Supabase](https://supabase.com), [Google AI Studio](https://aistudio.google.com) (ขอ Gemini API key) และ [Google Cloud Console](https://console.cloud.google.com) (เปิด YouTube Data API v3)
+- (ไม่บังคับ) GitHub OAuth App และ Google OAuth Client สำหรับปุ่ม Login ด้วย GitHub/Google — ถ้าไม่ตั้ง จะยังใช้ Email/Password ได้
+
+### 1. ดาวน์โหลดโค้ดและติดตั้ง dependencies
+
+```bash
+git clone https://github.com/FogusTH/ai-youtube-planner.git
+cd ai-youtube-planner
+npm install
+```
+
+### 2. สร้างฐานข้อมูลบน Supabase
+
+1. สร้างโปรเจกต์ใหม่ที่ Supabase
+2. เปิด **SQL Editor → New query** แล้วรันไฟล์ใน `supabase/` ตามลำดับนี้ (วางเนื้อหาไฟล์ → Run):
+   1. `schema.sql`
+   2. `migration_002_planning_fields.sql`
+   3. `migration_003_youtube_sync.sql`
+   4. `migration_004_seo_fields.sql`
+   5. `migration_005_content_types.sql`
+3. ไปที่ **Project Settings → API** เก็บค่า `Project URL` และ `service_role` key (แท็บ *Legacy anon, service_role API keys*)
+
+### 3. ตั้งค่า Environment Variables
+
+คัดลอกไฟล์ตัวอย่างแล้วกรอกค่า:
+
+```bash
+cp .env.example .env.local
+```
+
+| ตัวแปร | ได้มาจากไหน |
+|---|---|
+| `NEXTAUTH_URL` | ตอนรันบนเครื่องใช้ `http://localhost:3000` |
+| `NEXTAUTH_SECRET` | สตริงสุ่มยาวๆ สร้างด้วย `openssl rand -base64 32` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role key (ห้ามเปิดเผย) |
+| `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| `YOUTUBE_API_KEY` | Google Cloud Console → เปิด *YouTube Data API v3* → Credentials → Create API key |
+| `GITHUB_ID` / `GITHUB_SECRET` | (ไม่บังคับ) GitHub → Settings → Developer settings → OAuth Apps — Callback URL: `http://localhost:3000/api/auth/callback/github` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | (ไม่บังคับ) Google Cloud Console → Credentials → OAuth client ID — Redirect URI: `http://localhost:3000/api/auth/callback/google` |
+
+### 4. รันเว็บ
+
+```bash
+npm run dev
+```
+
+เปิดเบราว์เซอร์ไปที่ http://localhost:3000 แล้วสมัครสมาชิกด้วย Email/Password เพื่อเริ่มใช้งาน
+
+คำสั่งอื่นๆ: `npm run build` (สร้างเวอร์ชันโปรดักชัน) และ `npm start` (รันเวอร์ชันที่ build แล้ว)
+
+### Deploy ขึ้น Vercel (ฟรี)
+
+1. Push โค้ดขึ้น GitHub
+2. ที่ [Vercel](https://vercel.com) กด **Add New → Project** แล้วเลือก repo นี้
+3. ใส่ Environment Variables ตามตารางข้างบน โดยตั้ง `NEXTAUTH_URL` เป็นโดเมนจริงของ Vercel (เช่น `https://ชื่อโปรเจกต์.vercel.app`)
+4. กด Deploy — หลังจากนี้ทุกครั้งที่ push ขึ้น GitHub Vercel จะ deploy ให้อัตโนมัติ
+5. อัปเดต Callback URL ของ GitHub/Google OAuth ให้ตรงกับโดเมน Vercel
 
 ---
 
@@ -18,6 +126,7 @@ Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Google OAuth + Email/P
 - HTML / CSS (ผ่าน JSX และ Tailwind CSS)
 
 **Framework และไลบรารีหลัก**
+
 | ส่วน | เทคโนโลยี | หน้าที่ |
 |---|---|---|
 | Frontend + Backend | [Next.js 14](https://nextjs.org) (App Router) | เรนเดอร์หน้าเว็บ (React) และเป็น API server ในตัวเดียวกัน |
@@ -26,7 +135,8 @@ Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Google OAuth + Email/P
 | ระบบยืนยันตัวตน | [NextAuth.js](https://next-auth.js.org) | จัดการ Login ทั้ง 3 ช่องทาง (Email/Password, GitHub OAuth, Google OAuth) |
 | เข้ารหัสรหัสผ่าน | [bcryptjs](https://www.npmjs.com/package/bcryptjs) | แฮชรหัสผ่านก่อนเก็บลงฐานข้อมูล |
 | ฐานข้อมูล | [Supabase](https://supabase.com) (PostgreSQL) | เก็บข้อมูลผู้ใช้ ไอเดีย และคอนเทนต์ทั้งหมด |
-| AI สร้างไอเดีย | [Google Gemini API](https://ai.google.dev) (โมเดล gemini-3.6-flash) | คิดไอเดียคอนเทนต์ YouTube ให้อัตโนมัติ |
+| AI สร้างไอเดีย/SEO | [Google Gemini API](https://ai.google.dev) (โมเดล gemini-3.6-flash) | คิดไอเดียคอนเทนต์ YouTube และชื่อ/คำอธิบาย/แท็กให้อัตโนมัติ |
+| ข้อมูลวิดีโอ | [YouTube Data API v3](https://developers.google.com/youtube/v3) | ดึงยอดวิวของคลิปที่เผยแพร่แล้ว |
 
 **โครงสร้างพื้นฐาน (Infrastructure)**
 - [GitHub](https://github.com) — เก็บซอร์สโค้ด (Version Control)
@@ -35,102 +145,24 @@ Stack: Next.js 14 (App Router) + NextAuth (GitHub OAuth + Google OAuth + Email/P
 
 ---
 
-## ขั้นตอนที่ 1 — สร้าง repo บน GitHub
+## โครงสร้างโปรเจกต์
 
-1. สมัคร/ล็อกอิน https://github.com
-2. กด **New repository** → ตั้งชื่อ เช่น `ai-youtube-planner` → เลือก **Public** หรือ **Private** ก็ได้ → **ห้าม**ติ๊ก "Add a README" (เพราะเราจะอัปโหลดของเราเอง) → **Create repository**
-3. ในหน้า repo ที่ยังว่างอยู่ กด **uploading an existing file**
-4. เปิดโฟลเดอร์โปรเจกต์ที่แตกไฟล์ zip ไว้ แล้ว**ลากไฟล์/โฟลเดอร์ทั้งหมดข้างใน**มาวางในหน้าเว็บ (ลากทั้งหมดพร้อมกันได้ โครงสร้างโฟลเดอร์จะถูกเก็บไว้)
-5. เลื่อนลงล่าง ใส่ commit message เช่น "initial commit" → **Commit changes**
-
----
-
-## ขั้นตอนที่ 2 — ตั้งค่า Supabase (ฐานข้อมูล)
-
-1. สมัคร/ล็อกอิน https://supabase.com → **New project**
-2. ตั้งชื่อโปรเจกต์ + ตั้งรหัสผ่านฐานข้อมูล (เก็บไว้ ไม่ต้องใช้ต่อ) → รอสักครู่ให้โปรเจกต์สร้างเสร็จ
-3. ไปที่เมนู **SQL Editor** (ด้านซ้าย) → **New query**
-4. เปิดไฟล์ `supabase/schema.sql` ในโปรเจกต์ที่คุณอัปโหลด คัดลอกทั้งหมด วางในช่อง SQL Editor → กด **Run**
-5. ไปที่ **Project Settings → API** เก็บค่า 2 อย่างนี้ไว้ใช้ในขั้นตอนที่ 5:
-   - **Project URL** → ใช้เป็น `NEXT_PUBLIC_SUPABASE_URL`
-   - **service_role key** (อยู่ใต้ "Project API keys" — ระวัง อย่าเผยแพร่คีย์นี้ให้ใครเห็น) → ใช้เป็น `SUPABASE_SERVICE_ROLE_KEY`
+```
+app/              หน้าเว็บและ API routes (Next.js App Router)
+  api/            API endpoints (auth, ideas, content, youtube)
+  calendar/       หน้าปฏิทินคอนเทนต์
+  ideas/          หน้าคิดไอเดียด้วย AI
+  results/        หน้าผลลัพธ์หลังเผยแพร่
+  login/          หน้าเข้าสู่ระบบ / สมัครสมาชิก
+components/       React components ที่ใช้ร่วมกัน
+lib/              การเชื่อมต่อ Supabase, NextAuth, Gemini API, YouTube API
+supabase/         SQL schema และ migration ของฐานข้อมูล
+```
 
 ---
-
-## ขั้นตอนที่ 3 — ขอ Gemini API Key (สำหรับ AI คิดไอเดีย)
-
-1. เข้า https://aistudio.google.com/apikey → ล็อกอินด้วย Google account
-2. กด **Create API key** → คัดลอกคีย์เก็บไว้ → ใช้เป็น `GEMINI_API_KEY`
-   (ฟรี มี quota ให้ใช้งานรายวัน เพียงพอสำหรับ MVP)
-
----
-
-## ขั้นตอนที่ 4 — สร้าง GitHub OAuth App (สำหรับปุ่ม "เข้าสู่ระบบด้วย GitHub")
-
-1. ไปที่ https://github.com/settings/developers → **New OAuth App**
-2. กรอก:
-   - **Application name**: AI YouTube Planner
-   - **Homepage URL**: `http://localhost:3000` (ใส่ไปก่อน จะกลับมาแก้ทีหลัง)
-   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (ใส่ไปก่อนเช่นกัน)
-3. กด **Register application** → กด **Generate a new client secret**
-4. เก็บ **Client ID** → ใช้เป็น `GITHUB_ID`
-5. เก็บ **Client secret** → ใช้เป็น `GITHUB_SECRET`
-
-> ⚠️ ขั้นตอนนี้ต้องกลับมาแก้ URL อีกครั้งหลัง deploy เสร็จ (ดูขั้นตอนที่ 6)
-
----
-
-## ขั้นตอนที่ 5 — Deploy บน Vercel
-
-1. เข้า https://vercel.com → **Sign up** → เลือก **Continue with GitHub** (เชื่อมบัญชีอัตโนมัติ)
-2. กด **Add New... → Project** → เลือก repo `ai-youtube-planner` ที่อัปโหลดไว้ → **Import**
-3. ก่อนกด Deploy ให้เปิดส่วน **Environment Variables** แล้วใส่ทีละตัว:
-
-   | Key | Value |
-   |---|---|
-   | `NEXTAUTH_URL` | ใส่ไปก่อนว่า `https://ชื่อโปรเจกต์.vercel.app` (เดาชื่อจากที่ตั้งไว้ตอน import ได้ หรือใส่ค่าไหนก่อนก็ได้แล้วมาแก้ทีหลัง) |
-   | `NEXTAUTH_SECRET` | สุ่มค่าที่ https://generate-secret.vercel.app/32 แล้ววางที่นี่ |
-   | `GITHUB_ID` | จากขั้นตอนที่ 4 |
-   | `GITHUB_SECRET` | จากขั้นตอนที่ 4 |
-   | `NEXT_PUBLIC_SUPABASE_URL` | จากขั้นตอนที่ 2 |
-   | `SUPABASE_SERVICE_ROLE_KEY` | จากขั้นตอนที่ 2 |
-   | `GEMINI_API_KEY` | จากขั้นตอนที่ 3 |
-
-4. กด **Deploy** รอสัก 1-2 นาที
-
----
-
-## ขั้นตอนที่ 6 — แก้ URL ให้ตรงกับโดเมนจริง (สำคัญมาก)
-
-หลัง deploy เสร็จ Vercel จะให้โดเมนจริงมา เช่น `https://ai-youtube-planner-xxxx.vercel.app`
-
-1. **กลับไปที่ GitHub OAuth App** (ขั้นตอนที่ 4) → แก้ไข:
-   - Homepage URL → `https://ai-youtube-planner-xxxx.vercel.app`
-   - Authorization callback URL → `https://ai-youtube-planner-xxxx.vercel.app/api/auth/callback/github`
-   - กด **Update application**
-2. **กลับไปที่ Vercel** → Project → **Settings → Environment Variables** → แก้ `NEXTAUTH_URL` ให้เป็นโดเมนจริง (ไม่มี `/` ปิดท้าย)
-3. ไปที่แท็บ **Deployments** → กดจุดสามจุดของ deployment ล่าสุด → **Redeploy**
-
-เสร็จแล้ว! เปิดโดเมนของคุณ จะเจอหน้า login พร้อมใช้งานทั้งสมัครด้วยอีเมลและ GitHub
-
----
-
-## อัปเดตนี้เพิ่มอะไรบ้าง (v2)
-
-เวอร์ชันนี้เพิ่ม 4 อย่างจากที่คุยกัน:
-- **รายละเอียดคอนเทนต์**: ชื่อคลิปสำรอง, ไอเดียภาพปก, Hook เปิดคลิป, Call-to-action, ซีรีส์ — กดไอคอนในการ์ด (หรือปุ่ม "บันทึกผลลัพธ์") เพื่อเปิดกรอกได้
-- **หน้า "ผลลัพธ์"**: บันทึกยอดวิว/CTR/สิ่งที่เรียนรู้ หลังโพสต์ พร้อมสรุปว่าซีรีส์ไหนทำผลงานดีสุด
-- **ปฏิทินแบบเดือน**: สลับมุมมองบอร์ด/เดือนได้ที่หน้าปฏิทิน
-- **กรองตามซีรีส์**: dropdown บนหน้าปฏิทิน
-
-**สำคัญ:** ต้องรันไฟล์ `supabase/migration_002_planning_fields.sql` ใน Supabase SQL Editor ก่อน (เพิ่มคอลัมน์ใหม่ในตาราง `content_items`) ไม่งั้นฟีเจอร์ใหม่จะ error
-
-## การพัฒนาเพิ่มเติม (ถ้าอยากแก้โค้ดในอนาคต)
-
-- แก้โค้ดตรงๆ บนเว็บ GitHub ได้เลย (กดไอคอนดินสอที่ไฟล์ หรือกดปุ่ม `.` บนหน้า repo เพื่อเปิด github.dev ซึ่งเป็น VS Code บนเบราว์เซอร์ ฟรี ไม่ต้องติดตั้ง) — พอ commit ปุ๊บ Vercel จะ deploy ให้อัตโนมัติทุกครั้ง
-- ไฟล์หลักที่น่าจะแก้บ่อย: `app/ideas/page.js`, `app/calendar/page.js`, `lib/gemini.js` (ปรับ prompt ของ AI)
 
 ## ข้อจำกัดของ MVP นี้
 
 - ยังไม่มี Row Level Security (RLS) บน Supabase — สิทธิ์เข้าถึงข้อมูลถูกเช็คที่ชั้น API เท่านั้น เหมาะกับ MVP/ใช้ส่วนตัวก่อน ถ้าจะเปิดให้คนอื่นใช้เยอะๆ ควรเพิ่ม RLS
-- Gemini free tier มี rate limit รายนาที/วัน ถ้าชนโควต้าจะขึ้น error ให้ลองใหม่ภายหลัง
+- Gemini free tier มี rate limit รายนาที/วัน ถ้าชนโควต้าระบบจะลองเรียกซ้ำอัตโนมัติก่อนแจ้ง error
+- ยอดวิวดึงได้เมื่อกดปุ่มเท่านั้น (ไม่ใช่อัปเดตสดอัตโนมัติ) และ CTR/Retention ต้องกรอกเองจาก YouTube Studio เพราะ YouTube ไม่เปิดข้อมูลส่วนนี้ผ่าน API สาธารณะ
